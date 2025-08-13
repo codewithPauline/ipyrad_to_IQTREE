@@ -1,0 +1,27 @@
+ipyrad_to_IQTREE/
+├─ README.md
+├─ env/environment.yml
+├─ params/
+│ ├─ ipyrad_step1.txt
+│ └─ (add step2–step7 later if you want to version them)
+├─ scripts/
+│ ├─ 00_setup_conda.sh
+│ ├─ 01_fastp_trim.sh
+│ ├─ 02_clone_filter.sh
+│ ├─ 03_process_radtags.sh
+│ ├─ 10_ipyrad_step1.sh
+│ ├─ 11_ipyrad_step2.sh
+│ ├─ 12_ipyrad_step3.sh
+│ ├─ 13_ipyrad_step4.sh
+│ ├─ 14_ipyrad_step5.sh
+│ ├─ 15_ipyrad_step6.sh
+│ ├─ 16_ipyrad_step7.sh
+│ ├─ 20_check_outputs.sh
+│ ├─ 30_export_phylip.sh
+│ ├─ 40_iqtree_ml.sh
+│ └─ 41_iqtree_ultrafast.sh
+├─ docs/
+│ └─ pipeline_flow.png (optional)
+├─ qc/
+│ └─ fastp_config.json (optional)
+└─ .gitignore
