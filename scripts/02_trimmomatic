@@ -1,0 +1,4 @@
+trimmomatic SE -threads 4 -phred33 \
+AMBA_1_S1_L002_R1_001.fastq.gz AMBA_1_trimmed.fastq.gz \
+ILLUMINACLIP:/home/owusuap/miniconda3/envs/ipyrad_env/share/trimmomatic-0.39-2/adapters/TruSeq3-SE.fa:2:30:10 \
+LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
