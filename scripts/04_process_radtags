@@ -1,0 +1,2 @@
+process_radtags -f /shared/jezkovt_shared/Genomic_Data/RADseq/Ambystoma_RADseq/AMBA_raw/trimmed/AMBA_4_trimmed.fastq.gz \
+-o ./samples/ -b ./barcodes/barcodes -e sbfI -r -c -q
