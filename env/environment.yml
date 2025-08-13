@@ -2,3 +2,30 @@
 ```bash
 mamba env create -f env/environment.yml
 conda activate ipyrad-iqtree
+
+## Tools & Packages Used
+
+**Core Analysis** 
+![ipyrad](https://img.shields.io/badge/ipyrad-v0.9+-blue?logo=python&logoColor=white) — RADseq assembly & variant calling (single-end, reference-based) 
+![IQ-TREE](https://img.shields.io/badge/IQ--TREE-2.x-orange?logo=tree&logoColor=white) — Maximum-likelihood phylogenetic tree inference 
+
+**Sequence Handling & QC** 
+![fastp](https://img.shields.io/badge/fastp-blue?logo=fastapi&logoColor=white) — Read trimming & quality filtering 
+![Stacks](https://img.shields.io/badge/Stacks-clone__filter%20%7C%20process__radtags-brightgreen) — PCR duplicate removal & barcode demultiplexing 
+
+**Genomic Utilities** 
+![samtools](https://img.shields.io/badge/samtools-FASTA%2FFASTQ%2FBAM-lightgrey) 
+![bcftools](https://img.shields.io/badge/bcftools-VCF%20manipulation-lightgrey) 
+![vcftools](https://img.shields.io/badge/vcftools-variant%20filtering-lightgrey) 
+
+**Visualization & Stats (R)** 
+![tidyverse](https://img.shields.io/badge/tidyverse-data%20wrangling%20%26%20analysis-purple?logo=r&logoColor=white) 
+![ggplot2](https://img.shields.io/badge/ggplot2-visualization-yellow?logo=r&logoColor=white) 
+![ggrepel](https://img.shields.io/badge/ggrepel-label%20repulsion-yellow?logo=r&logoColor=white) 
+
+---
+
+These tools are installed automatically via the provided conda environment file: 
+```bash
+mamba env create -f env/environment.yml
+conda activate ipyrad-iqtree
