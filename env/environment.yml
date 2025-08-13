@@ -1,0 +1,4 @@
+## 📦 Environment
+```bash
+mamba env create -f env/environment.yml
+conda activate ipyrad-iqtree
