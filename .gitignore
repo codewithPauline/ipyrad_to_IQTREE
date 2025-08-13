@@ -17,9 +17,7 @@ ipyrad_to_IQTREE/
 │ ├─ 15_ipyrad_step6.sh
 │ ├─ 16_ipyrad_step7.sh
 │ ├─ 20_check_outputs.sh
-│ ├─ 30_export_phylip.sh
-│ ├─ 40_iqtree_ml.sh
-│ └─ 41_iqtree_ultrafast.sh
+│ └─ iqtree.sh
 ├─ docs/
 │ └─ pipeline_flow.png (optional)
 ├─ qc/
