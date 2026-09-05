@@ -1,522 +1,165 @@
-# Single-End RADseq Assembly and Phylogenetic Analysis
+# RADseq to Phylogeny
 
-## Overview
+**A documented single-end RADseq workflow for sequence quality control, de novo assembly, and maximum-likelihood phylogenetics.**
 
-This repository documents a reproducible **single-end RADseq workflow**
-for *Ambystoma* samples, beginning with sequence processing and **de
-novo assembly in ipyrad** and ending with **maximum-likelihood
-phylogenetic inference in IQ-TREE**.
+[Quick start](#quick-start) · [Research workflow](#research-workflow) · [Parameters](params/README.md) · [Synthetic example](examples/README.md) · [Historical record](docs/legacy/README.md)
 
-The overall workflow was:
+![Synthetic tree illustration; not an inferred research result](figures/illustrative-tree.svg)
 
-``` text
-Raw single-end RADseq reads
-        ↓
-Read preprocessing / quality control
-        ↓
-ipyrad de novo assembly
-        ↓
-Locus clustering and filtering
-        ↓
-Final RADseq datasets
-        ↓
-PHYLIP alignment
-        ↓
-IQ-TREE
-        ↓
-Maximum-likelihood phylogeny
+Developed around Pauline Owusu-Ansah's work on species boundaries and gene flow in *Ambystoma barbouri* and *A. texanum* at Miami University. The repository provides portable analysis entry points and preserves the original research notes separately.
+
+## What is included
+
+| Stage | Tool | Maintained entry point |
+| --- | --- | --- |
+| Read quality reports | FastQC | `scripts/workflow.py qc` |
+| Single-end adapter and quality filtering | fastp | `scripts/workflow.py trim` |
+| De novo RADseq assembly | ipyrad | `scripts/workflow.py assemble` |
+| Alignment checks | Python standard library | `scripts/workflow.py check` |
+| Model selection and phylogenetic inference | IQ-TREE 3 | `scripts/workflow.py infer` |
+
+**Scope:** the maintained read workflow starts with demultiplexed single-end FASTQ files. Clone filtering and demultiplexing require library-specific decisions; see [preprocessing guidance](docs/preprocessing.md). This is a sequence of explicit stages, not an unattended raw-pool-to-tree pipeline.
+
+## Quick start
+
+### 1. Get the repository and environment
+
+Linux or WSL with Conda/Mamba is the intended platform.
+
+```bash
+git clone https://github.com/codewithPauline/ipyrad_to_IQTREE.git
+cd ipyrad_to_IQTREE
+conda env create -f env/environment.yml
+conda activate ipyrad-iqtree
+python scripts/workflow.py --help
 ```
 
-All samples in the final assembly passed the filtering criteria and were
-retained for the phylogenetic analysis. No individuals were removed
-between the final ipyrad assembly and IQ-TREE analysis.
-
-------------------------------------------------------------------------
-
-## Study System
-
-The dataset contains RADseq data from salamanders in the genus
-*Ambystoma*, including:
-
--   *Ambystoma barbouri* --- Streamside Salamander
--   *Ambystoma texanum* --- Small-mouthed Salamander
-
-The workflow was designed to generate genomic datasets suitable for
-investigating evolutionary relationships and downstream
-population-genomic patterns.
-
-------------------------------------------------------------------------
-
-## Software
-
-The principal software used in the workflow included:
-
--   **Stacks** --- PCR clone filtering
--   **fastp** --- read quality filtering
--   **ipyrad** --- de novo RADseq assembly
--   **IQ-TREE 3** --- maximum-likelihood phylogenetic inference
--   **R** --- downstream visualization and analysis
-
-Conda environments were used where appropriate to maintain reproducible
-software installations.
-
-------------------------------------------------------------------------
-
-# 1. Read Preprocessing
-
-Raw single-end RADseq reads were processed before assembly.
-
-PCR duplicates/clones were filtered using the Stacks `clone_filter`
-utility.
-
-Example:
-
-``` bash
-clone_filter \
-    -f sample.fastq \
-    -o clone_filtered/
-```
-
-The resulting reads were subsequently subjected to quality filtering.
-
-------------------------------------------------------------------------
-
-# 2. Read Quality Filtering
-
-Sequence quality filtering was performed using **fastp**.
-
-Example environment activation:
-
-``` bash
-conda activate fastp_env
-```
-
-Quality-filtered reads were used as input for the ipyrad assembly.
-
-This preprocessing step was intended to minimize the contribution of
-low-quality reads and technical artifacts to locus assembly.
-
-------------------------------------------------------------------------
-
-# 3. ipyrad De Novo Assembly
-
-RADseq loci were assembled using **ipyrad** with a de novo assembly
-strategy.
-
-A new ipyrad parameter file was generated using:
-
-``` bash
-ipyrad -n AMBYSE
-```
-
-The parameter file was then configured for the dataset:
-
-``` bash
-nano params-AMBYSE.txt
-```
-
-The assembly was run through ipyrad Steps 1--7:
-
-``` bash
-ipyrad -p params-AMBYSE.txt -s 1234567
-```
-
-The major stages of the ipyrad workflow include:
-
-``` text
-Step 1  → Demultiplexing / input organization
-Step 2  → Filtering and editing reads
-Step 3  → Within-sample clustering
-Step 4  → Joint estimation of heterozygosity and sequencing error
-Step 5  → Consensus sequence generation
-Step 6  → Across-sample clustering
-Step 7  → Final locus filtering and output generation
-```
-
-------------------------------------------------------------------------
-
-# 4. Assembly Strategy
-
-The assembly used a **de novo** approach rather than mapping reads to a
-reference genome.
-
-An important clustering setting was:
-
-``` text
-assembly_method = denovo
-clust_threshold = 0.90
-```
-
-Adapter filtering was also enabled during assembly:
-
-``` text
-filter_adapters = 2
-```
-
-The complete `params-AMBYSE.txt` file should be retained with the
-project to provide the authoritative record of all ipyrad parameters.
-
-------------------------------------------------------------------------
-
-# 5. Population Assignment
-
-Samples were organized into the focal biological groups represented in
-the dataset.
-
-Population-specific minimum sampling criteria were incorporated into the
-final locus filtering stage.
-
-The working population requirement included:
-
-``` text
-Streamside:2
-Smallmouth:2
-```
-
-This ensured that retained loci contained sufficient representation from
-the focal groups for downstream comparative analyses.
-
-------------------------------------------------------------------------
-
-# 6. Final ipyrad Filtering
-
-Step 7 applied the final locus-level filters and generated the
-analysis-ready datasets.
-
-The assembly contained approximately:
-
-``` text
-Total prefiltered loci: 618,329
-Final retained loci:    293,819
-```
-
-The filtering procedure removed loci that did not satisfy the specified
-assembly criteria while retaining a large genomic dataset for downstream
-analysis.
-
-Importantly, **all individuals in the final dataset passed the
-sample-level criteria used for this analysis**.
-
-Therefore:
-
-``` text
-Final ipyrad samples
-        ↓
-No sample exclusions
-        ↓
-All samples retained for phylogenetic inference
-```
-
-No post-ipyrad individual removal step was performed for the tree
-presented in this workflow.
-
-------------------------------------------------------------------------
-
-# 7. ipyrad Output Files
-
-ipyrad generated multiple output formats that can be used for different
-downstream genomic analyses.
-
-Representative outputs include:
-
-``` text
-ipyrad_AMBYSE.vcf
-ipyrad_AMBYSE.phy
-ipyrad_AMBYSE.nex
-ipyrad_AMBYSE.str
-ipyrad_AMBYSE.ustr
-ipyrad_AMBYSE.geno
-ipyrad_AMBYSE.ugeno
-ipyrad_AMBYSE.snps
-ipyrad_AMBYSE.usnps
-ipyrad_AMBYSE.snpsmap
-ipyrad_AMBYSE.loci
-ipyrad_AMBYSE.gphocs
-ipyrad_AMBYSE.seqs.hdf5
-ipyrad_AMBYSE.snps.hdf5
-ipyrad_AMBYSE.stats.txt
-```
-
-These formats support multiple downstream applications, including
-population structure, genetic differentiation, SNP-based analyses, and
-phylogenetics.
-
-------------------------------------------------------------------------
-
-# 8. PHYLIP Alignment for Phylogenetic Analysis
-
-The PHYLIP alignment generated by ipyrad was used for maximum-likelihood
-phylogenetic inference.
-
-``` text
-ipyrad_AMBYSE.phy
-```
-
-Because all final samples were retained, the ipyrad-generated alignment
-could be carried directly into the phylogenetic workflow without an
-additional sample-removal step.
-
-Before tree inference, the alignment and sample names should be checked
-to confirm that:
-
--   the expected individuals are present;
--   sample identifiers are unique;
--   the PHYLIP header is consistent with the alignment;
--   sample IDs correspond to the project metadata.
-
-------------------------------------------------------------------------
-
-# 9. IQ-TREE Phylogenetic Analysis
-
-Maximum-likelihood phylogenetic inference was performed using **IQ-TREE
-3**.
-
-The installation/version can be checked with:
-
-``` bash
+The environment specifies ipyrad 0.9 and IQ-TREE 3; it is a dependency specification, not an exact lockfile. A complete environment solve has not yet been verified for this revision. Record the resolved environment when you run an analysis:
+
+```bash
+mkdir -p results
+conda list --explicit > results/conda-explicit.txt
+ipyrad --version
 iqtree3 --version
 ```
 
-The ipyrad PHYLIP alignment was supplied directly to IQ-TREE.
+If your installation names the IQ-TREE 3 binary `iqtree`, pass `--binary iqtree` to the inference command after checking its version.
 
-A representative analysis was run as:
+### 2. Try the synthetic alignment
 
-``` bash
-iqtree3 \
-    -s ipyrad_AMBYSE.phy \
-    -m TEST \
-    --alrt 1000 \
-    -B 1000 \
-    -T AUTO
+The included eight-sample alignment is entirely fictional and needs no research data.
+
+```bash
+python scripts/workflow.py check examples/demo.phy
+python scripts/workflow.py infer examples/demo.phy \
+  --out results/demo/demo --threads 1 --seed 2026
 ```
 
-For a system or compute allocation with a known number of available CPU
-cores, the number of threads can instead be specified explicitly.
+The inference command runs ModelFinder (`MFP`), 1,000 ultrafast bootstrap replicates, and 1,000 SH-aLRT replicates. Use `--model TEST` if deliberately matching that historical model-selection setting. A fixed seed helps reproducibility within a consistent software environment; record the tool versions and thread count too.
 
-For example:
+To inspect the exact command without running IQ-TREE or creating output directories:
 
-``` bash
-iqtree3 \
-    -s ipyrad_AMBYSE.phy \
-    -m TEST \
-    --alrt 1000 \
-    -B 1000 \
-    -T 24
+```bash
+python scripts/workflow.py infer examples/demo.phy \
+  --out results/demo/demo --threads 1 --dry-run
 ```
 
-------------------------------------------------------------------------
+**The displayed tree is an illustration of the synthetic design, not an inferred result.** The demo exercises alignment checks and inference; it does not reproduce the Ambystoma study or test assembly from FASTQ.
 
-# 10. IQ-TREE Options
+## Research workflow
 
-### Model testing
+Run commands from the repository root. Replace the example filenames and adapter with values from your own library protocol.
 
-``` text
--m TEST
+### 1. Review demultiplexed reads
+
+```bash
+python scripts/workflow.py qc data/sorted/SAMPLE_A.fastq.gz \
+  --out qc/before --threads 4
 ```
 
-Tests nucleotide substitution models so that phylogenetic inference can
-be performed using an appropriate model for the alignment.
+### 2. Trim one sample at a time
 
-### SH-aLRT branch support
-
-``` text
---alrt 1000
+```bash
+python scripts/workflow.py trim data/sorted/SAMPLE_A.fastq.gz \
+  --out results/trimmed/SAMPLE_A --threads 4 \
+  --adapter YOUR_CONFIRMED_ADAPTER_SEQUENCE --min-length 35
 ```
 
-Performs **1,000 SH-aLRT replicates** to evaluate branch support.
+The adapter placeholder is intentionally rejected until replaced with an A/C/G/T sequence. Inspect `fastp.html` and `fastp.json`. Each sample gets its own output directory. Stage the resulting reads under unique sample filenames as described in [preprocessing](docs/preprocessing.md), then repeat FastQC in a new directory. Existing nonempty QC/trim output directories are rejected to prevent accidental overwrites.
 
-### Ultrafast bootstrap
+### 3. Configure and run ipyrad
 
-``` text
--B 1000
+```bash
+ipyrad -n project
+# Edit params-project.txt using params/README.md before proceeding.
+python scripts/workflow.py assemble params-project.txt \
+  --steps 1234567 --threads 4
 ```
 
-Performs **1,000 ultrafast bootstrap replicates**.
+The wrapper does not install software, activate environments, force completed steps, or choose biological filtering thresholds. It passes your reviewed parameter file to ipyrad. Use only the CPUs allocated to your job; the default is one.
 
-### CPU threads
+The historical parameter file and README disagree on clustering and adapter filtering. Final assembly settings, sample retention, and reported locus totals need confirmation against the original logs. See [the provenance notes](docs/legacy/README.md).
 
-``` text
--T AUTO
+### 4. Validate the alignment and infer the tree
+
+```bash
+python scripts/workflow.py check results/project_outfiles/project.phy
+python scripts/workflow.py infer results/project_outfiles/project.phy \
+  --out results/phylogeny/project --threads 4 --seed 2026
 ```
 
-Allows IQ-TREE to determine the available number of CPU threads.
+Replace the example alignment path with the actual ipyrad PHYLIP output. The validator accepts **relaxed sequential DNA PHYLIP**, with one complete sequence per line. It checks sample/site counts, unique IDs, nucleotide symbols, and samples lacking any resolved bases. It does not support interleaved PHYLIP or silently remove individuals.
 
-Alternatively:
+Use the full locus alignment for this example. SNP-only alignments need explicit consideration of ascertainment bias and an appropriate model; do not apply the defaults indiscriminately. Re-running the same inference command lets IQ-TREE manage checkpoint resumption. No forced `--redo` option is added.
 
-``` text
--T 24
+## Outputs and interpretation
+
+| Output | Purpose |
+| --- | --- |
+| `*.treefile` | Inferred maximum-likelihood tree |
+| `*.iqtree` | Model, fit, and branch-support report |
+| `*.log` | Run progress and analysis details |
+| `*.ufboot` | Bootstrap trees |
+| `*.ckp.gz` | IQ-TREE checkpoint for resuming a run |
+
+Check sample names against metadata and inspect branch support before biological interpretation. A phylogenetic tree alone does not establish species boundaries or demonstrate gene flow. Rooting requires a justified outgroup or other explicit choice.
+
+## Repository guide
+
+- `scripts/workflow.py`: maintained CLI with input checks and dry-run support.
+- `env/environment.yml`: Conda dependency specification.
+- `params/README.md`: parameter decisions to review before assembly.
+- `examples/`: synthetic alignment, generator, and illustrative Newick tree.
+- `figures/`: clearly labeled synthetic illustration.
+- `tests/`: input-validation and command-execution tests.
+- `docs/legacy/`: original files preserved for provenance, not active instructions.
+
+The existing `iqtree.sh` and selected numbered shell scripts now forward arguments to the maintained CLI. Run them with `bash`; no executable bit is required.
+
+## Validation status
+
+```bash
+python -m unittest discover -s tests -v
 ```
 
-uses 24 threads when 24 CPU cores have been allocated to the analysis.
+Automated tests cover malformed alignments, duplicate IDs, paths containing spaces, dry runs, command failure propagation, argument forwarding, and output protection. CI repeats these checks with standard Python. **Mock executables test orchestration; they do not establish scientific correctness.** A full Conda solve, actual IQ-TREE demo, and end-to-end ipyrad run still require validation in an analysis environment.
 
-------------------------------------------------------------------------
+## Data and reproducibility
 
-# 11. IQ-TREE Outputs
+No private sequencing data or sample coordinates have been added. Generated results and common raw-data formats are ignored by Git. Keep original reads, final parameter files, sample manifests, software versions, and run logs with the research record. Historical claims remain archived rather than being presented as newly verified results.
 
-IQ-TREE generates several files documenting the analysis.
+## Software references
 
-Important outputs include:
+Use the original software citations when publishing analyses:
 
-``` text
-*.treefile
-*.iqtree
-*.log
-*.ufboot
-```
-
-### `.treefile`
-
-Contains the final maximum-likelihood tree.
-
-### `.iqtree`
-
-Contains a detailed report of the phylogenetic analysis, including model
-information, likelihood statistics, alignment information, and
-branch-support results.
-
-### `.log`
-
-Records the progress and commands associated with the IQ-TREE run.
-
-### `.ufboot`
-
-Contains trees generated during the ultrafast bootstrap analysis.
-
-The final `*.treefile` can be imported into R for rooting, annotation,
-visualization, and preparation of publication-quality figures.
-
-------------------------------------------------------------------------
-
-# 12. Tree Visualization
-
-The IQ-TREE output can be read into R using packages such as:
-
-``` r
-library(ape)
-library(ggtree)
-library(treeio)
-```
-
-For example:
-
-``` r
-library(ape)
-
-tree <- read.tree("AMBYSE_iqtree.treefile")
-
-plot(tree, cex = 0.5)
-```
-
-Sample metadata can subsequently be matched to tree-tip labels to
-visualize geographic locality, population, species assignment, or other
-biological variables.
-
-------------------------------------------------------------------------
-
-# 13. Downstream Applications
-
-The ipyrad datasets generated by this workflow can support additional
-analyses, including:
-
--   Maximum-likelihood phylogenetics
--   Population structure analysis
--   sNMF
--   PCA
--   Genetic differentiation (FST)
--   Genetic diversity
--   Admixture analysis
--   Gene-flow analyses
--   Population assignment
--   Geographic ancestry visualization
--   Landscape and population genomics
-
-------------------------------------------------------------------------
-
-# Complete Workflow
-
-``` text
-                 SINGLE-END RADseq
-                        │
-                        ▼
-                  Raw FASTQ files
-                        │
-                        ▼
-              PCR clone filtering
-                 (clone_filter)
-                        │
-                        ▼
-               Quality filtering
-                    (fastp)
-                        │
-                        ▼
-                 ipyrad assembly
-                        │
-          ┌─────────────┴─────────────┐
-          │                           │
-          ▼                           ▼
-   Within-sample                 Across-sample
-     clustering                    clustering
-          │                           │
-          └─────────────┬─────────────┘
-                        ▼
-                 Step 7 filtering
-                        │
-                        ▼
-              293,819 retained loci
-                        │
-                        ▼
-              All samples retained
-                        │
-                        ▼
-         Multiple genomic output files
-        VCF / PHYLIP / STRUCTURE / etc.
-                        │
-                        ▼
-              PHYLIP alignment
-                        │
-                        ▼
-                   IQ-TREE 3
-                        │
-          ┌─────────────┼─────────────┐
-          ▼             ▼             ▼
-      Model test    SH-aLRT 1000   UFBoot 1000
-          │             │             │
-          └─────────────┼─────────────┘
-                        ▼
-             Maximum-likelihood tree
-                        │
-                        ▼
-             Visualization in R
-```
-
-------------------------------------------------------------------------
-
-# Reproducibility
-
-To improve reproducibility, the repository can include:
-
-``` text
-README.md
-params-AMBYSE.txt
-scripts/
-figures/
-```
-
-Large sequencing and genomic data files such as FASTQ, VCF, HDF5, and
-large alignments do not need to be stored directly in the GitHub
-repository.
-
-The repository instead documents the computational workflow, commands,
-parameters, and analysis scripts necessary to reproduce the analysis
-when the underlying data are available.
-
-------------------------------------------------------------------------
+- [ipyrad](https://github.com/dereneaton/ipyrad)
+- [IQ-TREE command reference](https://iqtree.github.io/doc/Command-Reference)
+- [fastp](https://github.com/OpenGene/fastp)
+- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+- [Stacks](https://catchenlab.life.illinois.edu/stacks/)
 
 ## Author
 
-**Pauline Owusu-Ansah**\
-Ph.D. Biology\
-Miami University
-
-**Research areas:** Evolutionary biology, population genomics,
-computational biology, speciation, hybridization, and gene flow.
+**Pauline Owusu-Ansah** · Ph.D. Candidate in Biology · Miami University  
+Computational biology, population genomics, and evolutionary biology  
+[GitHub](https://github.com/codewithPauline) · [LinkedIn](https://www.linkedin.com/in/pauline-owusu-ansah-010250192/)

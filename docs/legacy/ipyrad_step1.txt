@@ -28,3 +28,4 @@ TGCAG,                         ## [8] [restriction_overhang]: Restriction overha
 0, 0, 0, 0                     ## [26] [trim_loci]: Trim locus edges (see docs) (R1>, <R1, R2>, <R2)
 p, s, u, n, k, G, g, v                       ## [27] [output_formats]: Output formats (see docs)
                                ## [28] [pop_assign_file]: Path to population assignment file
+
